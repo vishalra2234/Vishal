@@ -9,7 +9,7 @@ if (!auth_user() || !is_admin()) {
 }
 
 header('Content-Type: application/json');
-$allowed = ['users','courses','lessons','tests','questions','jobs','blogs','payments','coupons','notifications'];
+$allowed = ['users','courses','lessons','tests','questions','jobs','blogs','payments','coupons','notifications','website_settings'];
 $module = $_GET['module'] ?? 'users';
 if (!in_array($module, $allowed, true)) {
     http_response_code(400);

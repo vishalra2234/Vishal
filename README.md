@@ -4,11 +4,11 @@ Production-oriented Government Job & Competitive Exam preparation platform using
 
 ## Modules Included
 - Course selling with secure checkout and coupon handling.
-- Test series scaffold (timer + result pipeline + leaderboard-ready schema).
-- Job alert portal with filter-ready AJAX API.
+- Test series with timed attempt page, auto-submit and negative-marking score calculation.
+- Job alert portal with state/qualification filters, save-job workflow and share actions.
 - Blog system scaffold.
-- User auth (bcrypt hashing, password_verify, CSRF, session regeneration).
-- User dashboard and role-based admin panel.
+- User auth (bcrypt hashing, password_verify, CSRF, session regeneration) with token-based password reset flow.
+- User dashboard (courses, results, saved jobs, orders) and role-based admin panel.
 - SEO essentials (`sitemap.xml`, `robots.txt`).
 
 ## Folder Structure

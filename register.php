@@ -1,6 +1,7 @@
 <?php require_once __DIR__ . '/app/helpers/helpers.php'; $title='Register'; require __DIR__ . '/app/views/partials/header.php'; ?>
 <section class="max-w-xl mx-auto p-6 mt-8 bg-white rounded-xl shadow-sm">
 <h1 class="text-2xl font-bold mb-4">Create Account</h1>
+<?php if (!empty($_SESSION['error'])): ?><p class="text-red-500 text-sm mb-2"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p><?php endif; ?>
 <form method="post" action="/app/controllers/AuthController.php" class="space-y-3">
 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>"><input type="hidden" name="action" value="register">
 <input required name="name" placeholder="Name" class="w-full border p-2 rounded-lg">

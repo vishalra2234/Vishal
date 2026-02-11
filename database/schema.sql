@@ -168,6 +168,46 @@ CREATE TABLE notifications (
   CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+
+CREATE TABLE user_courses (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  course_id BIGINT UNSIGNED NOT NULL,
+  progress_percent DECIMAL(5,2) DEFAULT 0,
+  unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_user_course (user_id, course_id),
+  CONSTRAINT fk_user_courses_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_user_courses_course FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+);
+
+CREATE TABLE saved_jobs (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  job_id BIGINT UNSIGNED NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_saved_job (user_id, job_id),
+  CONSTRAINT fk_saved_jobs_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_saved_jobs_job FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+);
+
+CREATE TABLE password_resets (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_password_resets_token(token_hash),
+  CONSTRAINT fk_password_resets_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE website_settings (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  setting_key VARCHAR(120) UNIQUE NOT NULL,
+  setting_value TEXT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 INSERT INTO users (name, email, mobile, password, role) VALUES
 ('Admin User', 'admin@govprephub.in', '9999999999', '$2y$10$u5FEp9nWmTixvQUGzX6fAe7hRjK6f62d5f74fQOqOpj4Vw6ac.cP6', 'admin');
 
@@ -181,3 +221,20 @@ INSERT INTO jobs (title, qualification, state, last_date, official_link) VALUES
 
 INSERT INTO coupons (code, discount_type, value, valid_till, is_active) VALUES
 ('WELCOME50', 'percent', 50, '2027-01-01', 1);
+
+INSERT INTO tests (title, duration_minutes, negative_marking, total_marks) VALUES
+('SSC CGL Full Mock Test 1', 60, 0.25, 100),
+('Banking Prelims Speed Test', 45, 0.25, 100);
+
+INSERT INTO questions (test_id, question_text, option_a, option_b, option_c, option_d, correct_option, marks) VALUES
+(1, 'भारत का संविधान कब लागू हुआ?', '15 August 1947', '26 January 1950', '2 October 1949', '1 January 1950', 'B', 1),
+(1, 'भारत की राजधानी क्या है?', 'Mumbai', 'Delhi', 'Kolkata', 'Chennai', 'B', 1),
+(2, 'Simple interest formula is?', 'P*T*R/100', 'P+T+R', 'P*T+R', 'P+T-R', 'A', 1);
+
+INSERT INTO blogs (title, slug, excerpt, content) VALUES
+('How to Crack SSC CGL in First Attempt', 'how-to-crack-ssc-cgl-first-attempt', 'Practical strategy for beginners with daily plan.', 'Long-form content placeholder...'),
+('Daily Current Affairs Revision Blueprint', 'daily-current-affairs-revision-blueprint', 'Simple method to retain current affairs for exams.', 'Long-form content placeholder...');
+
+INSERT INTO website_settings (setting_key, setting_value) VALUES
+('site_name', 'GovPrep Hub'),
+('support_email', 'support@govprephub.in');
