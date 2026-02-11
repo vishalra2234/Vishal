@@ -1,0 +1,12 @@
+<?php require_once __DIR__ . '/app/helpers/helpers.php'; $title='Register'; require __DIR__ . '/app/views/partials/header.php'; ?>
+<section class="max-w-xl mx-auto p-6 mt-8 bg-white rounded-xl shadow-sm">
+<h1 class="text-2xl font-bold mb-4">Create Account</h1>
+<form method="post" action="/app/controllers/AuthController.php" class="space-y-3">
+<input type="hidden" name="csrf_token" value="<?= csrf_token() ?>"><input type="hidden" name="action" value="register">
+<input required name="name" placeholder="Name" class="w-full border p-2 rounded-lg">
+<input required type="email" name="email" placeholder="Email" class="w-full border p-2 rounded-lg">
+<input required name="mobile" placeholder="Mobile" class="w-full border p-2 rounded-lg">
+<input required type="password" name="password" placeholder="Password" class="w-full border p-2 rounded-lg">
+<input name="referral_code" placeholder="Referral Code" class="w-full border p-2 rounded-lg">
+<button class="w-full bg-brand text-white py-2 rounded-lg">Register</button>
+</form></section><?php require __DIR__ . '/app/views/partials/footer.php'; ?>
