@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Passport Photo Sheet Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background:#f7f7fb; color:#222; }
+    .card { background:white; border-radius:12px; padding:1rem 1.2rem; box-shadow:0 2px 8px rgba(0,0,0,.08); max-width:900px; }
+    h1 { margin-top:0; }
+    .row { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:.8rem; }
+    label { display:flex; flex-direction:column; gap:.3rem; font-size:.9rem; }
+    input, select, button { padding:.45rem .55rem; font-size:.95rem; }
+    button { cursor:pointer; border:1px solid #999; background:#fafafa; border-radius:8px; }
+    canvas { margin-top:1rem; border:1px solid #ddd; max-width:100%; height:auto; background:white; }
+    .muted { color:#666; font-size:.88rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Passport Photo Sheet Generator</h1>
+    <p class="muted">Upload one photo, choose passport size and copy count, then export printable sheet (PNG/JPG).</p>
+
+    <div class="row">
+      <label>Upload photo
+        <input type="file" id="fileInput" accept="image/*" />
+      </label>
+      <label>Passport size
+        <select id="passportSize">
+          <option value="35x45">35mm × 45mm</option>
+          <option value="2x2">2in × 2in (US)</option>
+        </select>
+      </label>
+      <label>Paper size
+        <select id="paperSize">
+          <option value="4x6">4 × 6 inch</option>
+          <option value="a4">A4</option>
+        </select>
+      </label>
+      <label>Copies
+        <input id="copies" type="number" min="1" max="100" value="6" />
+      </label>
+      <label>Gap (mm)
+        <input id="gap" type="number" min="0" max="20" value="3" />
+      </label>
+    </div>
+
+    <div class="row">
+      <button id="generateBtn">Generate sheet</button>
+      <button id="downloadPngBtn">Download PNG</button>
+      <button id="downloadJpgBtn">Download JPG</button>
+    </div>
+
+    <canvas id="sheetCanvas" width="1800" height="1200"></canvas>
+    <p class="muted">Rendering at 300 DPI for print-ready output.</p>
+  </div>
+
+  <script>
+    const DPI = 300;
+    const IN_TO_PX = DPI;
+    const MM_TO_IN = 1 / 25.4;
+
+    const paperSizes = {
+      "4x6": { wIn: 6, hIn: 4 },
+      "a4": { wIn: 8.27, hIn: 11.69 }
+    };
+
+    const passportSizes = {
+      "35x45": { wIn: 35 * MM_TO_IN, hIn: 45 * MM_TO_IN },
+      "2x2": { wIn: 2, hIn: 2 }
+    };
+
+    const fileInput = document.getElementById("fileInput");
+    const passportSizeEl = document.getElementById("passportSize");
+    const paperSizeEl = document.getElementById("paperSize");
+    const copiesEl = document.getElementById("copies");
+    const gapEl = document.getElementById("gap");
+    const canvas = document.getElementById("sheetCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let sourceImage = null;
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => { sourceImage = img; drawPlaceholder(); };
+      img.src = URL.createObjectURL(file);
+    });
+
+    function coverDraw(img, targetX, targetY, targetW, targetH) {
+      const srcAspect = img.width / img.height;
+      const dstAspect = targetW / targetH;
+      let sx = 0, sy = 0, sw = img.width, sh = img.height;
+      if (srcAspect > dstAspect) {
+        sw = img.height * dstAspect;
+        sx = (img.width - sw) / 2;
+      } else {
+        sh = img.width / dstAspect;
+        sy = (img.height - sh) / 2;
+      }
+      ctx.drawImage(img, sx, sy, sw, sh, targetX, targetY, targetW, targetH);
+    }
+
+    function generateSheet() {
+      if (!sourceImage) {
+        alert("Please upload a photo first.");
+        return;
+      }
+
+      const paper = paperSizes[paperSizeEl.value];
+      const pass = passportSizes[passportSizeEl.value];
+      const copies = Math.max(1, Number(copiesEl.value || 1));
+      const gapPx = Math.round(Number(gapEl.value || 0) * MM_TO_IN * IN_TO_PX);
+
+      canvas.width = Math.round(paper.wIn * IN_TO_PX);
+      canvas.height = Math.round(paper.hIn * IN_TO_PX);
+
+      const photoW = Math.round(pass.wIn * IN_TO_PX);
+      const photoH = Math.round(pass.hIn * IN_TO_PX);
+
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const usableW = canvas.width - gapPx;
+      const cols = Math.max(1, Math.floor(usableW / (photoW + gapPx)));
+      const rows = Math.ceil(copies / cols);
+
+      const totalW = cols * photoW + (cols - 1) * gapPx;
+      const totalH = rows * photoH + (rows - 1) * gapPx;
+      const startX = Math.max(0, Math.floor((canvas.width - totalW) / 2));
+      const startY = Math.max(0, Math.floor((canvas.height - totalH) / 2));
+
+      let placed = 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (placed >= copies) break;
+          const x = startX + c * (photoW + gapPx);
+          const y = startY + r * (photoH + gapPx);
+          coverDraw(sourceImage, x, y, photoW, photoH);
+          ctx.strokeStyle = "#e2e2e2";
+          ctx.strokeRect(x, y, photoW, photoH);
+          placed++;
+        }
+      }
+    }
+
+    function drawPlaceholder() {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#666";
+      ctx.font = "20px Arial";
+      ctx.fillText("Photo loaded. Click 'Generate sheet'.", 30, 40);
+    }
+
+    function downloadImage(type) {
+      const ext = type === "image/jpeg" ? "jpg" : "png";
+      const link = document.createElement("a");
+      link.download = `passport-sheet.${ext}`;
+      link.href = canvas.toDataURL(type, 0.95);
+      link.click();
+    }
+
+    document.getElementById("generateBtn").addEventListener("click", generateSheet);
+    document.getElementById("downloadPngBtn").addEventListener("click", () => downloadImage("image/png"));
+    document.getElementById("downloadJpgBtn").addEventListener("click", () => downloadImage("image/jpeg"));
+  </script>
+</body>
+</html>
